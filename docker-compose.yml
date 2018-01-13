@@ -15,7 +15,7 @@ services:
       - app:/autoseg/var/www/sso/public/
     ports:
       - "8080:80"
-      - "443:443"
+      - "8443:443"
     links:
       - 'app'
 volumes:
