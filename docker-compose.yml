@@ -16,7 +16,7 @@ services:
       - /etc/pki/CA/certs/:/etc/httpd/certs
     ports:
       - "8080:80"
-      - "8443:443"
+      - "443:443"
     links:
       - 'app'
 volumes:
