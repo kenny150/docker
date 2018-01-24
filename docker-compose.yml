@@ -7,8 +7,8 @@ services:
       - "3000:3000"
     volumes:
       - app:/autoseg/var/www/sso/public
-    environment :
-      - RAILS_MASTER_KEY=7a2e2fed7c641f2e43e9afc365b78ab1
+    environment:
+      - RAILS_MASTER_KEY="7a2e2fed7c641f2e43e9afc365b78ab1"
   apache:
     build: apache-dockerfile/
     volumes:
