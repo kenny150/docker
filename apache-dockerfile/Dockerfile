@@ -1,15 +1,11 @@
 FROM centos:7
 MAINTAINER Kennedy Alves <kennedy.santos@autoseg.com>
 LABEL Passmonki Server
-RUN /bin/yum clean all && /bin/yum update -y 
-RUN /bin/yum install vim net-tools tar bzip2 \
+RUN /bin/yum update -y && /bin/yum install vim net-tools tar bzip2 \
     gzip wget telnet tcpdump curl openssl httpd httpd-tools \
-    httpd-devel libcurl-devel apr-devel apr-util-devel gcc-c++ which gnupg2 bash mod_ssl libyaml libyaml-devel -y
-RUN  gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
-RUN \curl -sSL https://get.rvm.io | bash
-    
-RUN /bin/bash -l -c "rvm requirements"
-RUN /bin/bash -l -c "rvm install ruby-2.5.0"
+    httpd-devel libcurl-devel apr-devel apr-util-devel gcc-c++ which gnupg2 bash mod_ssl -y && /bin/yum clean all
+RUN gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+RUN \curl -sSL https://get.rvm.io | bash -s stable --ruby=2.5.0
 RUN /bin/bash -l -c "rvm --default use ruby-2.5.0"
 RUN /bin/bash -l -c "gem install bundler --no-ri --no-rdoc"
 RUN /bin/bash -l -c "gem install rack -v=1.4.7"
