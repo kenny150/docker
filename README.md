@@ -19,7 +19,7 @@ Também é necessário informar onde buscar a aplicação.
 // Se tudo ocorrer bem
 4º - docker-compose up
 
-\_('_')_/
+ \ _ ('_') _ /
 
 
 
