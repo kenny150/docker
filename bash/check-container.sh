@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-docker_home='/root/docker'
+docker_home='/etc/docker/docker-config/docker'
 container=$(docker ps | grep "docker-registry.local" | awk -F '/' '{print $2}' | cut -d " " -f1)
   if [[ -z "$container" ]]; then
     echo "Container Parado"
