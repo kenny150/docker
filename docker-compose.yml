@@ -1,25 +1,25 @@
 version: '3'
 services:
-  passmonki_dev:
+  passmonki:
     env_file:
       - .env
     environment:
       - RAILS_ENV=${RAILS_ENV}
-    image: "docker-registry.local:5000/passmonki_${PASSV}"
+    build: .
     command: bundle exec rails s -p 3000 -b '0.0.0.0'
     ports:
       - "3000:3000"
     volumes:
-      - passmonki_dev:/autoseg/var/www/sso/public
+      - passmonki:/autoseg/var/www/sso/public
   apache:
-    image: "docker-registry.local:5000/apache_${WEBV}"
+    build: apache-dockerfile/
     volumes:
-      - passmonki_dev:/autoseg/var/www/sso/public/
+      - passmonki:/autoseg/var/www/sso/public/
       - /etc/pki/CA/certs/:/etc/httpd/certs
     ports:
       - "8080:80"
       - "443:443"
     links:
-      - 'passmonki_dev'
+      - 'passmonki'
 volumes:
-  passmonki_dev:
+  passmonki:
