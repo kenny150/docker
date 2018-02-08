@@ -1,20 +1,11 @@
 FROM centos:7
 MAINTAINER Kennedy Alves <kennedy.santos@autoseg.com>
 LABEL Passmonki Server
+RUN /bin/yum install epel-release -y
 RUN /bin/yum update -y && /bin/yum install vim net-tools tar bzip2 \
     gzip wget telnet tcpdump curl openssl httpd httpd-tools \
-    httpd-devel libcurl-devel apr-devel apr-util-devel gcc-c++ which gnupg2 bash mod_ssl -y && /bin/yum clean all
-RUN gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
-RUN \curl -sSL https://get.rvm.io | bash -s stable --ruby=2.5.0
-RUN /bin/bash -l -c "rvm --default use ruby-2.5.0"
-RUN /bin/bash -l -c "gem install bundler --no-ri --no-rdoc"
-RUN /bin/bash -l -c "gem install rack -v=1.4.7"
-RUN /bin/bash -l -c "gem install passenger --no-ri --no-rdoc"
-RUN /bin/bash -l -c "passenger-install-apache2-module --auto"
+    httpd-devel libcurl-devel apr-devel apr-util-devel gcc-c++ which gnupg2 bash mod_ssl mod_passenger -y && /bin/yum clean all
 RUN /bin/touch /etc/httpd/conf.d/passenger.conf
-RUN \
-#=================================================================
-    /bin/echo -e 'LoadModule passenger_module /usr/local/rvm/gems/ruby-2.5.0/gems/passenger-5.1.12/buildout/apache2/mod_passenger.so\n<IfModule mod_passenger.c>\nPassengerRoot /usr/local/rvm/gems/ruby-2.5.0/gems/passenger-5.1.12\nPassengerDefaultRuby /usr/local/rvm/gems/ruby-2.5.0/wrappers/ruby\n</IfModule>\n\n' >> /etc/httpd/conf.d/passenger.conf
 #=================================================================
 RUN /bin/touch /etc/httpd/conf.d/mod_deflate.conf && \
 #=================================================================
