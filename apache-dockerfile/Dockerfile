@@ -1,5 +1,5 @@
 FROM centos:7
-MAINTAINER Kennedy Alves <kennedy.santos@autoseg.com>
+MAINTAINER Kennedy Alvess <kennedy.santos@autoseg.com>
 LABEL Passmonki Server
 RUN /bin/yum install epel-release -y
 RUN /bin/yum update -y && /bin/yum install vim net-tools tar bzip2 \
