@@ -18,5 +18,5 @@ RUN /bin/echo -e 'TraceEnable off\n\n<VirtualHost *:80>\nServerName srv-sso-serv
 RUN /bin/chmod 755 /etc/httpd/ -R && /bin/chown apache:apache /etc/httpd/ -R
 VOLUME /etc/httpd/certs/
 EXPOSE 80 443
-CMD ["-D", "FOREGROUND"]
-ENTRYPOINT ["/usr/sbin/httpd"]
+#CMD ["-D", "FOREGROUND"]
+#ENTRYPOINT ["/usr/sbin/httpd"]
