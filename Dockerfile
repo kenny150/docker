@@ -4,7 +4,7 @@ RUN useradd deployer
 RUN mkdir -p /home/deployer
 ADD . /autoseg/var/www/sso
 WORKDIR /autoseg/var/www/sso
-RUN ./bin/setup
+#RUN ./bin/setup
 RUN chown -R deployer:deployer /autoseg/
 USER deployer
 VOLUME /autoseg/var/www/sso/public
