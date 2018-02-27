@@ -1,7 +1,7 @@
 require "rubygems"
 require "sinatra"
 require "json"
-
+require "puma"
 class App < Sinatra::Application
 
   set :bind, '0.0.0.0'
