@@ -1,0 +1,631 @@
+{
+   "kind": "BuildConfig",
+   "apiVersion": "v1",
+   "metadata": {
+      "name": "mlbparks",             (1)
+      "labels": {
+         "application": "mlbparks"    (2)
+      }
+   },
+   "spec": {
+      "source": {                     (3)
+         "type": "Git",               (4)
+         "git": {
+            "uri": "https://github.com/jorgemoralespou/openshift3mlbparks.git",  (5)
+            "ref": "master"           (6)
+         },
+         "contextDir":""              (7)
+      },
+      "strategy": {                   (8)
+         "type": "Source",            (9)
+         "sourceStrategy": {
+            "from": {                 (10)
+               "kind": "ImageStreamTag",
+               "namespace": "openshift",
+               "name": "jboss-eap6-openshift:6.4"
+            }
+         }
+      },
+      "output": {                     (11)
+         "to": {
+            "kind": "ImageStreamTag",
+            "name": "mlbparks:latest"
+         }
+      },
+      "triggers": [
+         {
+            "type": "GitHub",         (12)
+            "generic": {
+               "secret": "secret"
+            }
+         },
+         {
+            "type": "Generic",        (13)
+            "github": {
+               "secret": "secret"
+            }
+         },
+         {
+            "type": "ImageChange",    (14)
+            "imageChange": {}
+         }
+      ]
+   }
+}
+
+
+
+    This is the name that will identify this BuildConfig.
+    These are the labels that will be set for this BuildConfig.
+    This section defines where is the source for the build.
+    It defines it is source located in a Git repository.
+    In this URI.
+    And using this tag/branch. This value is optional and defaults to “master” if not provided.
+    And this subdirectory from the repository. This value is optional and defaults to the root directory of the repository.
+    This defines which build strategy to use.
+    Source=S2I.
+    And this defines which S2I builder image to use.
+    Defines where to leave the generated image if the build succeeds. It is placing it in our current project.
+    This define that a change generated via a GitHub webhook trigger (if the source code is changed) will trigger a build.
+    This define that a change generated via a Generic webhook trigger will trigger a build.
+    This define that an Image Change will trigger a build. This will trigger a build if the builder image changes or is updated.
+
+
+{
+   "kind": "ImageStream",
+   "apiVersion": "v1",
+   "metadata": {
+      "name": "mlbparks",            (1)
+      "labels": {
+         "application": "mlbparks"   (2)
+      }
+   },
+   "spec": {                         (3)
+      "dockerImageRepository": "",   (4)
+      "tags": [                      (5)
+         {
+            "name": "latest"
+         }
+      ]
+   }
+}
+
+
+
+    Name of the ImageStream. This ImageStream will be created in the current project.
+    Label to describe the resource relative to the application we are creating.
+    ImageStream Specifications
+    Docker Repository backing this image stream.
+    List of available tags or image stream locators for this image stream.
+
+
+
+{
+   "kind": "DeploymentConfig",
+   "apiVersion": "v1",
+   "metadata": {
+      "name": "mlbparks",                 (1)
+      "labels": {                         (2)
+         "deploymentConfig": "mlbparks",
+         "application": "mlbparks"
+      }
+   },
+   "spec": {                              (3)
+      "replicas": 1,                      (4)
+      "selector": {
+         "deploymentConfig": "mlbparks"   (5)
+      },
+      "strategy": {
+         "type": "Recreate"               (6)
+      },
+      "template": {                       (7)
+         "metadata": {
+            "labels": {                   (8)
+               "deploymentConfig": "mlbparks",
+               "application": "mlbparks"
+            },
+            "name": "mlbparks"            (9)
+         },
+         "spec": {                        (10)
+            "containers": [
+               {
+                  "name": "mlbparks",          (11)
+                  "image": "mlbparks",         (12)
+                  "imagePullPolicy": "Always", (13)
+                  "env": [                     (14)
+                     {
+                        "name": "OPENSHIFT_DNS_PING_SERVICE_NAME",
+                        "value": "mlbparks-ping"
+                     },
+                     {
+                        "name": "OPENSHIFT_DNS_PING_SERVICE_PORT",
+                        "value": "8888"
+                     },
+                     {
+                        "name": "MONGODB_USER",
+                        "value": "user"
+                     },
+                     {
+                        "name": "MONGODB_PASSWORD",
+                        "value": "password"
+                     },
+                     {
+                        "name": "MONGODB_DATABASE",
+                        "value": "database"
+                     }
+                  ],
+                  "ports": [                   (15)
+                     {
+                        "name": "mlbparks-http",
+                        "containerPort": 8080,
+                        "protocol": "TCP"
+                     },
+                     {
+                        "name": "mlbparks-ping",
+                        "containerPort": 8888,
+                        "protocol": "TCP"
+                     }
+                  ],
+                  "readinessProbe": {         (16)
+                     "exec": {
+                        "command": [
+                           "/bin/bash",
+                           "-c",
+                           "/opt/eap/bin/readinessProbe.sh"
+                        ]
+                     }
+                  },
+                  "resources": {},
+                  "terminationMessagePath": "/dev/termination-log",
+                  "securityContext": {        (17)
+                     "capabilities": {},
+                     "privileged": false
+                  }
+               }
+            ],
+            "restartPolicy": "Always",
+            "dnsPolicy": "ClusterFirst"
+         }
+      },
+      "triggers": [                           (18)
+         {
+            "type": "ImageChange",            (19)
+            "imageChangeParams": {
+               "automatic": true,
+               "containerNames": [
+                  "mlbparks"
+               ],
+               "from": {
+                  "kind": "ImageStreamTag",
+                  "name": "mlbparks:latest"
+               }
+            }
+         },
+         {                                    (20)
+            "type": "ConfigChange"
+         }
+      ]
+   }
+}
+
+    This is the name that will identify this DeploymentConfig
+    These are the labels that will describe this DeploymentConfig.
+    Specification for the DeploymentConfig. Everything inside this section describes the DeploymentConfig configuration.
+    Number of instances that should be created for this component/deployment
+    This should be the same as name (1).
+    Strategy to use when deploying a new version of the application in case it is triggered. As defined in triggers
+    The template defines what will be deployed as part of this deployment (the pod)
+    The labels to apply for the resources contained in the template (pod)
+    Name of the pod. Every pod instance created will have this name as prefix.
+    Defines the configuration (contents) of the pod
+    The name of the container.
+    The name of the image to use. See note.
+    What should do when deploying. As we will be building the image, we need to always pull on new deployments. Note that if the image tag is latest, it will always pull the image by default, otherwise it will default to “IfNotPresent”.
+    A set of environment variables to pass to this container
+    The ports that the container exposes
+    Probe that will determine if the runtime in the container has started successfully, and traffic can be routed to it.
+    SecurityContextContraint to use for the container
+    The triggers that will dictate on what conditions to create a new deployment. (Deploy a new version of the pod)
+    Create a new deployment when the latest image tag is updated
+    Create a new deployment when there is a configuration change for this Resource.
+
+
+
+{
+   "kind": "DeploymentConfig",
+   "apiVersion": "v1",
+   "metadata": {
+      "name": "mlbparks-mongodb",                 (1)
+      "labels": {                                 (2)
+         "application": "mlbparks"
+      }
+   },
+   "spec": {                                      (3)
+      "replicas": 1,                              (4)
+      "selector": {
+         "deploymentConfig": "mlbparks-mongodb"   (5)
+      },
+      "strategy": {
+         "type": "Recreate"                       (6)
+      },
+      "template": {                               (7)
+         "metadata": {
+            "labels": {                           (8)
+               "deploymentConfig": "mlbparks-mongodb",
+               "application": "mlbparks"
+            },
+            "name": "mlbparks-mongodb"            (9)
+         },
+         "spec": {                                (10)
+            "containers": [
+               {
+                  "name": "mlbparks-mongodb",         (11)
+                  "image": "mongodb",                 (12)
+                  "imagePullPolicy": "IfNotPresent",  (13)
+                  "env": [                            (14)
+                     {
+                        "name": "MONGODB_USER",
+                        "value": "user"
+                     },
+                     {
+                        "name": "MONGODB_PASSWORD",
+                        "value": "password"
+                     },
+                     {
+                        "name": "MONGODB_DATABASE",
+                        "value": "database"
+                     }
+                  ],
+                  "ports": [                          (15)
+                     {
+                        "containerPort": 27017,
+                        "protocol": "TCP"
+                     }
+                  ],
+                  "resources": {},
+                  "volumeMounts": [                   (16)
+                     {
+                        "name": "mlbparks-mongodb-data",
+                        "mountPath": "/var/lib/mongodb/data"
+                     }
+                  ],
+                  "terminationMessagePath": "/dev/termination-log",
+                  "securityContext": {                (17)
+                     "capabilities": {},
+                     "privileged": false
+                  }
+               }
+            ],
+            "volumes": [                              (18)
+               {
+                  "name": "mlbparks-mongodb-data",
+                  "emptyDir": {}
+               }
+            ],
+            "restartPolicy": "Always",
+            "dnsPolicy": "ClusterFirst"
+         }
+      },
+      "triggers": [                                   (19)
+         {
+            "type": "ImageChange",                    (20)
+            "imageChangeParams": {
+               "automatic": true,
+               "containerNames": [
+                  "mlbparks-mongodb"
+               ],
+               "from": {
+                  "kind": "ImageStreamTag",
+                  "namespace": "openshift",
+                  "name": "mongodb:latest"
+               }
+            }
+         },
+         {                                             (21)
+            "type": "ConfigChange"
+         }
+      ]
+   }
+}
+
+    This is the name that will identify this DeploymentConfig
+    These are the labels that will describe this DeploymentConfig.
+    Specification for the DeploymentConfig. Everything inside this section describes the DeploymentConfig configuration.
+    Number of instances that should be created for this component/deployment
+    This should be the same as name (1).
+    Strategy to use when deploying a new version of the application in case it is triggered. As defined in triggers
+    The template defines what will be deployed as part of this deployment (the pod)
+    The labels to apply for the resources contained in the template (pod)
+    Name of the pod. Every pod instance created will have this name as prefix.
+    Defines the configuration (contents) of the pod
+    The name of the container.
+    The name of the image to use. See note.
+    What should do when deploying. We will only pull the image if it is not present, unless there is an ImageChange triggered in which case it will pull down the image, as we are using the :latest tag.
+    A set of environment variables to pass to this container
+    The ports that the container exposes
+    Volume mounts used in the container
+    SecurityContextContraint to use for the container
+    Volumes required for the pod. EmptyDir is a temporary directory on a single machine.
+    The triggers that will dictate on what conditions to create a new deployment. (Deploy a new version of the pod)
+    Create a new deployment when the latest image tag is updated
+    Create a new deployment when there is a configuration change for this Resource.
+
+
+
+{
+   "kind": "Service",
+   "apiVersion": "v1",
+   "metadata": {
+      "name": "mongodb",             (1)
+      "labels": {
+         "application": "mlbparks"   (2)
+      }
+   },
+   "spec": {
+      "ports": [
+         {
+            "port": 27017,           (3)
+            "targetPort": 27017      (4)
+         }
+      ],
+      "selector": {                  (5)
+         "deploymentConfig": "mlbparks-mongodb"
+      }
+   }
+}
+
+    Name of the service
+    Labels describing this service
+    Port where the service will be listening
+    Port in the pod to route the network traffic to
+    Label selector for determining which pods will be target for this service
+
+
+
+{
+   "kind": "Service",
+   "apiVersion": "v1",
+   "metadata": {
+      "name": "mlbparks-http",           (1)
+      "labels": {
+         "application": "mlbparks"       (2)
+      },
+      "annotations": {
+         "description": "The web server's http port"
+      }
+   },
+   "spec": {
+      "ports": [
+         {
+            "port": 8080,                (3)
+            "targetPort": 8080           (4)
+         }
+      ],
+      "selector": {
+         "deploymentConfig": "mlbparks"  (5)
+      }
+   }
+}
+
+    Name of the service
+    Labels describing this service
+    Port where the service will be listening
+    Port in the pod to route the network traffic to
+    Label selector for determining which pods will be target for this service
+
+
+
+{
+   "kind": "Service",
+   "apiVersion": "v1",
+   "metadata": {
+      "name": "mlbparks-ping",           (1)
+      "labels": {
+         "application": "mlbparks"       (2)
+      },
+      "annotations": {
+         "description": "Ping service for clustered applications"
+      }
+   },
+   "spec": {
+      "ports": [
+         {
+            "port": 8888,                (3)
+            "targetPort": 8888           (4)
+         }
+      ],
+      "selector": {
+         "deploymentConfig": "mlbparks"  (5)
+      }
+   }
+}
+
+    Name of the service
+    Labels describing this service
+    Port where the service will be listening
+    Port in the pod to route the network traffic to
+    Label selector for determining which pods will be target for this service
+
+
+
+{
+   "kind": "Route",
+   "apiVersion": "v1",
+   "metadata": {
+      "name": "mlbparks-http-route",       (1)
+      "labels": {
+         "application": "mlbparks"         (2)
+      },
+      "annotations": {
+         "description": "Route for application's http service"
+      }
+   },
+   "spec": {
+      "host": "mlbparks.cloudapps.example.com", (3)
+      "to": {                                   (4)
+         "kind": "Service",
+         "name": "mlbparks-http"
+      }
+   }
+}
+
+    Name of the route
+    Set of labels to describe the route
+    DNS name used to access our application. This DNS name needs to resolve to the ip address of the OpenShift router.
+    Defines that this is a route to a service with the specified name
+
+{
+   "kind": "Template",
+   "apiVersion": "v1",
+   "metadata": {
+      ...
+   },
+   "labels": {                    (1)
+      "application": "mlbparks",
+      "createdBy": "template-mlbparks"
+   },
+   "parameters": [
+      ...
+   ],
+   "objects": [
+      ...
+   ]
+}
+
+$ oc get buildconfig --selector="application=mlbparks"
+$ oc get deploymentconfig --selector="deploymentConfig=mlbparks"
+$ oc delete all --selector="application=mlbparks"
+
+PARAMETRIZANDO
+
+
+{
+   "kind": "BuildConfig",
+   "apiVersion": "v1",
+   "metadata": {
+      "name": "${APPLICATION_NAME}",
+      "labels": {
+         "application": "${APPLICATION_NAME}"
+      }
+   },
+   "spec": {
+      "triggers": [
+         {
+            "type": "Generic",
+            "generic": {
+               "secret": "${GENERIC_TRIGGER_SECRET}"
+            }
+         },
+         {
+            "type": "GitHub",
+            "github": {
+               "secret": "${GITHUB_TRIGGER_SECRET}"
+            }
+         },
+         {
+            "type": "ImageChange",
+            "imageChange": {}
+         }
+      ],
+      "source": {
+         "type": "Git",
+         "git": {
+            "uri": "${GIT_URI}",
+            "ref": "${GIT_REF}"
+         }
+      },
+      "strategy": {
+         "type": "Source",
+         "sourceStrategy": {
+            "from": {
+               "kind": "ImageStreamTag",
+               "namespace": "openshift",
+               "name": "jboss-eap6-openshift:${EAP_RELEASE}"
+            }
+         }
+      },
+      "output": {
+         "to": {
+            "kind": "ImageStreamTag",
+            "name": "${APPLICATION_NAME}:latest"
+         }
+      }
+   }
+}
+
+
+CRIANDO PARAMETROS
+
+
+ "parameters": [
+      {
+         "description": "EAP Release version, e.g. 6.4, etc.",
+         "name": "EAP_RELEASE",
+         "value": "6.4"
+      },
+      {
+         "description": "The name for the application.",
+         "name": "APPLICATION_NAME",
+         "value": "mlbparks"
+      },
+      {
+         "description": "Custom hostname for service routes.",
+         "name": "APPLICATION_HOSTNAME"
+      },
+      {
+         "description": "Git source URI for application",
+         "name": "GIT_URI",
+         "value": "https://github.com/jorgemoralespou/openshift3mlbparks.git"
+      },
+      {
+         "description": "Git branch/tag reference",
+         "name": "GIT_REF",
+         "value": "master"
+      },
+      {
+         "description": "Database name",
+         "name": "MONGODB_DATABASE",
+         "value": "root"
+      },
+      {
+         "description": "Database user name",
+         "name": "MONGODB_USER",
+         "from": "user[a-zA-Z0-9]{3}",
+         "generate": "expression"
+      },
+      {
+         "description": "Database user password",
+         "name": "MONGODB_PASSWORD",
+         "from": "[a-zA-Z0-9]{8}",
+         "generate": "expression"
+      },
+      {
+         "description": "Github trigger secret",
+         "name": "GITHUB_TRIGGER_SECRET",
+         "from": "[a-zA-Z0-9]{8}",
+         "generate": "expression"
+      },
+      ....
+   ]
+
+
+   CRIANDO O TEMPLATE 
+
+   $ oc create -f my_template.json -n openshift
+
+   REGISTRANDO O TEMPLATE PARA USAR NO PROJETO
+
+   oc create -f my_template.json
+
+   CRIANDO O TEMPLATE EM PROJETOS DIFERENTES
+
+   $ oc create -f my_template.json -n <project>
+
+   LISTANDO AS VARIAVEIS DO TEMPLATE
+   $ oc get templates -n openshift
+   $ oc get templates
+
+   INSPECIONANDO O TEMPLATE
+
+   $ oc describe template mlbparks
+   
