@@ -1,0 +1,70 @@
+{
+    "kind": "BuildConfig",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "ruby-ex",
+        "namespace": "teste99",
+        "selfLink": "/oapi/v1/namespaces/teste99/buildconfigs/ruby-ex",
+        "uid": "d9429dc1-1d97-11e8-84c7-122631632f42",
+        "resourceVersion": "2289559811",
+        "creationTimestamp": "2018-03-01T21:31:05Z",
+        "labels": {
+            "app": "ruby-ex"
+        },
+        "annotations": {
+            "openshift.io/generated-by": "OpenShiftNewApp"
+        }
+    },
+    "spec": {
+        "triggers": [
+            {
+                "type": "GitHub",
+                "github": {
+                    "secret": "x2KBf1QXtsEdQ_Cju2MK"
+                }
+            },
+            {
+                "type": "Generic",
+                "generic": {
+                    "secret": "cWUQqyd9ZfCcNhssUkWo"
+                }
+            },
+            {
+                "type": "ConfigChange"
+            },
+            {
+                "type": "ImageChange",
+                "imageChange": {
+                    "lastTriggeredImageID": "centos/ruby-22-centos7@sha256:9aace214a36e249729d59baa10a87470efaf49acbdedc07e2ad74273caa8d793"
+                }
+            }
+        ],
+        "runPolicy": "Serial",
+        "source": {
+            "type": "Git",
+            "git": {
+                "uri": "https://github.com/openshift/ruby-ex.git"
+            }
+        },
+        "strategy": {
+            "type": "Source",
+            "sourceStrategy": {
+                "from": {
+                    "kind": "ImageStreamTag",
+                    "name": "ruby-22-centos7:latest"
+                }
+            }
+        },
+        "output": {
+            "to": {
+                "kind": "ImageStreamTag",
+                "name": "ruby-ex:latest"
+            }
+        },
+        "resources": {},
+        "postCommit": {}
+    },
+    "status": {
+        "lastVersion": 1
+    }
+}
